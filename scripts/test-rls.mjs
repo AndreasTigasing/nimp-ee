@@ -479,4 +479,94 @@ describe('admin', () => {
 
     assert.ifError((await bucket.remove([path])).error)
   })
+
+  test('manages admins through invitations', async () => {
+    const listed = await admin.rpc('list_admins')
+    assert.ifError(listed.error)
+    const self = listed.data.find((row) => row.email === adminEmail)
+    assert.equal(self?.is_self, true)
+
+    // Non-admins cannot see admins, create invitations or remove anyone.
+    for (const client of [anon, member]) {
+      assert.ok((await client.rpc('list_admins')).error, 'list_admins must be admin only')
+      assert.ok((await client.rpc('create_admin_invite')).error, 'inviting must be admin only')
+      assert.ok((await client.rpc('list_admin_invites')).error, 'invites must be admin only')
+      assert.ok((await client.rpc('remove_admin', { target: self.user_id })).error)
+      const direct = await client.from('admin_invites').select('*')
+      assert.ok(direct.error || direct.data.length === 0, 'invites table must be unreachable')
+    }
+
+    // An invitation bound to another address is useless to this member.
+    const foreign = await admin.rpc('create_admin_invite', {
+      invite_email: `other-${runId}@rls-test.local`,
+      valid_days: 1,
+    })
+    assert.ifError(foreign.error)
+    assert.match(foreign.data, /^[0-9A-F]{4}(-[0-9A-F]{4}){3}$/)
+    assert.equal(
+      (await member.rpc('accept_admin_invite', { code: foreign.data })).data,
+      'wrong_email',
+    )
+    assert.equal(
+      (await member.rpc('accept_admin_invite', { code: 'AAAA-BBBB-CCCC-DDDD' })).data,
+      'invalid_code',
+    )
+    assert.ok(
+      (await anon.rpc('accept_admin_invite', { code: foreign.data })).error,
+      'anon cannot accept',
+    )
+    assert.equal((await member.rpc('is_admin')).data, false)
+
+    // An expired invitation is refused.
+    const stale = await admin.rpc('create_admin_invite', { invite_email: memberEmail })
+    await service
+      .from('admin_invites')
+      .update({ expires_at: inHours(-1) })
+      .eq('email', memberEmail)
+    assert.equal((await member.rpc('accept_admin_invite', { code: stale.data })).data, 'expired')
+
+    // A valid one works — in lower case, without dashes — exactly once.
+    const invite = await admin.rpc('create_admin_invite', {
+      invite_email: memberEmail.toUpperCase(),
+    })
+    const typed = invite.data.replaceAll('-', '').toLowerCase()
+    assert.equal((await member.rpc('accept_admin_invite', { code: typed })).data, 'ok')
+    assert.equal((await member.rpc('is_admin')).data, true)
+    assert.equal(
+      (await admin.rpc('accept_admin_invite', { code: invite.data })).data,
+      'invalid_code',
+    )
+
+    const open = await admin.rpc('list_admin_invites')
+    assert.ifError(open.error)
+    assert.ok(
+      !open.data.some((row) => row.email === memberEmail && !row.is_expired),
+      'used invite is gone',
+    )
+
+    // Removing: never yourself, others yes — and their rights end immediately.
+    assert.equal(
+      (await admin.rpc('remove_admin', { target: self.user_id })).data,
+      'cannot_remove_self',
+    )
+    const memberId = (await admin.rpc('list_admins')).data.find(
+      (row) => row.email === memberEmail,
+    ).user_id
+    assert.equal((await admin.rpc('remove_admin', { target: memberId })).data, 'ok')
+    assert.equal((await member.rpc('is_admin')).data, false)
+    assert.ok((await member.rpc('list_admins')).error)
+
+    // Revoking an open invitation makes its code worthless.
+    const revoked = await admin.rpc('create_admin_invite', { invite_email: memberEmail })
+    const pending = (await admin.rpc('list_admin_invites')).data.find(
+      (row) => row.email === memberEmail && !row.is_expired,
+    )
+    assert.ifError((await admin.rpc('revoke_admin_invite', { invite_id: pending.id })).error)
+    assert.equal(
+      (await member.rpc('accept_admin_invite', { code: revoked.data })).data,
+      'invalid_code',
+    )
+
+    await service.from('admin_invites').delete().like('email', '%@rls-test.local')
+  })
 })

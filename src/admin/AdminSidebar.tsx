@@ -6,6 +6,7 @@ import {
   LogOut,
   Settings,
   Tag,
+  Users,
   type LucideIcon,
 } from 'lucide-react'
 import { NavLink } from 'react-router'
@@ -30,6 +31,7 @@ const NAV: NavItem[] = [
   { to: '/admin/calendar', label: t.admin.nav.calendar, icon: CalendarDays },
   { to: '/admin/submissions', label: t.admin.nav.submissions, icon: Inbox },
   { to: '/admin/settings', label: t.admin.nav.settings, icon: Settings },
+  { to: '/admin/admins', label: t.admin.nav.admins, icon: Users },
 ]
 
 const itemClasses =

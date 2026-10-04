@@ -148,6 +148,24 @@ type AdminUserRow = {
   created_at: string
 }
 
+/** A row of `list_admins()`. */
+export type AdminAccount = {
+  user_id: string
+  email: string
+  added_at: string
+  last_sign_in_at: string | null
+  is_self: boolean
+}
+
+/** A row of `list_admin_invites()`: an open (not yet used) invitation. */
+export type AdminInvite = {
+  id: string
+  email: string | null
+  created_at: string
+  expires_at: string
+  is_expired: boolean
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -198,6 +216,30 @@ export type Database = {
         Returns: boolean
       }
       claim_first_admin: {
+        Args: { code: string }
+        Returns: string
+      }
+      list_admins: {
+        Args: Record<PropertyKey, never>
+        Returns: AdminAccount[]
+      }
+      remove_admin: {
+        Args: { target: string }
+        Returns: string
+      }
+      create_admin_invite: {
+        Args: { invite_email?: string | null; valid_days?: number }
+        Returns: string
+      }
+      list_admin_invites: {
+        Args: Record<PropertyKey, never>
+        Returns: AdminInvite[]
+      }
+      revoke_admin_invite: {
+        Args: { invite_id: string }
+        Returns: undefined
+      }
+      accept_admin_invite: {
         Args: { code: string }
         Returns: string
       }

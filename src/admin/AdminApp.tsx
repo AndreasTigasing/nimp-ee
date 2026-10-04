@@ -3,10 +3,12 @@ import { usePageMeta } from '@/hooks/usePageMeta'
 import { t } from '@/locales'
 import { useSiteConfig } from '@/providers/site-config-context'
 import { AdminLayout } from './AdminLayout'
+import { AdminsManager } from './AdminsManager'
 import { AuthProvider } from './AuthProvider'
 import { CalendarManager } from './CalendarManager'
 import { ContactSubmissions } from './ContactSubmissions'
 import { Dashboard } from './Dashboard'
+import { JoinPage } from './JoinPage'
 import { LoginPage } from './LoginPage'
 import { OffersManager } from './OffersManager'
 import { RequireAdmin } from './RequireAdmin'
@@ -26,6 +28,7 @@ export default function AdminApp() {
       <Routes>
         <Route path="login" element={<LoginPage />} />
         <Route path="setup" element={<SetupPage />} />
+        <Route path="join" element={<JoinPage />} />
         <Route element={<RequireAdmin />}>
           <Route element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
@@ -33,6 +36,7 @@ export default function AdminApp() {
             <Route path="calendar" element={<CalendarManager />} />
             <Route path="submissions" element={<ContactSubmissions />} />
             <Route path="settings" element={<SettingsManager />} />
+            <Route path="admins" element={<AdminsManager />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/admin" replace />} />

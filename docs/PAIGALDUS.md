@@ -75,11 +75,19 @@ Lülita majutuses sisse **HTTPS** (tavaliselt tasuta Let's Encrypt).
      **Authentication → Sign In / Providers → Email → Confirm email**.
 4. **Leht.** Nimi, tunnuslause, äri e-post ja Twitchi link. Kõike saab hiljem seadetes muuta.
 5. **Domeen.** Sisesta lehe aadress; seadistus näitab, mida domeenihalduris teha tuleb.
-6. **Pärast seadistust** keela uute kasutajate registreerimine:
-   **Authentication → Sign In / Providers → „Allow new users to sign up"** → välja.
-   (Ka sisselülitatuna ei saa uus kasutaja mingeid õigusi, aga nii on puhtam.)
+6. **Registreerimine.** Kui sa teisi haldureid lisada ei plaani, võid nüüd keelata uute
+   kasutajate registreerimise: **Authentication → Sign In / Providers → „Allow new users to sign
+   up"** → välja. Kui plaanid haldureid kutsuda (vt allpool), jäta see sisse — ilma kutseta
+   loodud konto ei saa nagunii mingeid õigusi.
 
 Valmis. Halduspaneel asub aadressil `/admin`.
+
+## Teiste haldurite lisamine
+
+Halduspaneelis on vaade **Haldurid**. Seal saad luua ühekordse kutse ja saata selle lingi uuele
+haldurile; tema valib lingi kaudu ise oma e-posti ja parooli. Samas vaates saab haldureid
+eemaldada ja kasutamata kutseid tühistada. Kutse vastuvõtmiseks peab registreerimine olema
+Supabase'is lubatud.
 
 ---
 

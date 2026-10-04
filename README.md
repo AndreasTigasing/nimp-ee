@@ -246,12 +246,32 @@ Why a code: the site is static and public, so without it whoever opened `/admin`
 themselves the admin. Only someone with access to the Supabase project can read the code; it is
 checked by the database (`claim_first_admin`), works once, and the setup closes for good as soon
 as one admin exists. If Supabase asks for e-mail confirmation, click the link in the mail and
-press "Loo konto" again (or switch off _Confirm email_ before the setup). Afterwards, turn off
-_Allow new users to sign up_.
+press "Loo konto" again (or switch off _Confirm email_ before the setup).
 
-### Adding further admins, or doing it by hand
+### Adding and removing admins (admin panel)
 
-`admin_users` cannot be written through the API, so additional admins are added with SQL:
+_Admin → Haldurid_ lists the admins and manages them:
+
+- **Invite** — an admin creates a one-time invitation (optionally bound to one e-mail address,
+  valid 1 / 7 / 30 days) and sends the link to the new person. They open
+  `/admin/join#<code>`, choose their own e-mail and password, and become an admin. The link is
+  shown once; only a hash of the code is stored, and the code travels in the URL fragment, so it
+  never reaches a web-server log.
+- **Remove** — takes the role away immediately. The account itself is kept without any rights.
+  An admin cannot remove themselves, so the site can never be left without an admin.
+- **Revoke** — an unused invitation can be cancelled.
+
+Accepting an invitation creates an account, so _Allow new users to sign up_ must be **on** in
+Supabase when someone joins. That is safe to leave on: an account without an invitation has
+exactly the rights of an anonymous visitor. If you prefer it off, switch it on only while
+inviting.
+
+All of this is enforced by database functions (`create_admin_invite`, `accept_admin_invite`,
+`remove_admin`, …) that check the caller; the tables are not reachable through the API.
+
+### Doing it by hand (SQL)
+
+Additional admins can also be added directly in the database:
 
 1. Dashboard → _Authentication → Users → Add user_ (tick _Auto Confirm User_).
 2. _SQL Editor_:
