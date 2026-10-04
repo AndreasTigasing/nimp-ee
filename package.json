@@ -1,0 +1,55 @@
+{
+  "name": "streamer-site-template",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Reusable streamer collaboration website: media kit, sponsorship offers, stream calendar and admin panel. Static frontend + Supabase.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:rls": "node --test scripts/test-rls.mjs",
+    "package": "node scripts/package.mjs",
+    "config:export": "node scripts/site-config.mjs export",
+    "config:import": "node scripts/site-config.mjs import"
+  },
+  "dependencies": {
+    "@date-fns/tz": "^1.5.0",
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource-variable/unbounded": "^5.3.0",
+    "@supabase/postgrest-js": "^2.117.2",
+    "@supabase/supabase-js": "^2.117.2",
+    "date-fns": "^4.4.0",
+    "lucide-react": "^1.49.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "^8.4.0",
+    "simple-icons": "^16.33.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vite": "^8.3.2"
+  }
+}

@@ -1,0 +1,87 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Allows a manual run from the Actions tab (e.g. after changing variables).
+  workflow_dispatch:
+
+# Least privilege: read the repository, publish to Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deployments at once; let an in-progress one finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      # Reads the Pages settings of THIS repository. Its outputs tell the build
+      # whether the site lives at https://<user>.github.io/<repository>/ or on
+      # a custom domain, so no path or domain is hardcoded anywhere.
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v6
+
+      # Forwards every repository variable whose name starts with VITE_ to the
+      # build. A new streamer site is configured entirely in
+      # Settings → Secrets and variables → Actions → Variables.
+      - name: Load VITE_* repository variables
+        env:
+          REPOSITORY_VARIABLES: ${{ toJSON(vars) }}
+        run: |
+          echo "$REPOSITORY_VARIABLES" | jq -r '
+            to_entries[]
+            | select(.key | startswith("VITE_"))
+            | "\(.key)<<__streamer_site_env__\n\(.value)\n__streamer_site_env__"
+          ' >> "$GITHUB_ENV"
+
+      - name: Check required configuration
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::warning::VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are not set as repository variables. The site will deploy, but offers, calendar, contact form and admin will be unavailable."
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          # "" for a custom domain or user site, "/<repository>" for a project site.
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Public URL for canonical / Open Graph tags, sitemap and CNAME.
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL || steps.pages.outputs.base_url }}
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

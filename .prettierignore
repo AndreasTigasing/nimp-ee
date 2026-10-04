@@ -1,0 +1,7 @@
+dist
+node_modules
+package-lock.json
+supabase/.temp
+supabase/.branches
+backups
+release
